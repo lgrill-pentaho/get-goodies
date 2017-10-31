@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>org.pentaho.docker</groupId>
+  <artifactId>get-the-goodies</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  
+  <properties>
+    <!-- Get latest release version >= 8.0 < 8.1 (i think)...
+      **  <ael.version>[8.0.0,8.1.0)</ael.version>
+      ** ... but maven version range accurate comparison requires maven versioning like n.n.n 
+      ** When we use n.n.n.n it falls to do a lexical comparison.
+      ** Using this range spec i get:
+      ** [WARNING] The POM for org.pentaho.adaptive:pdi-websocket-daemon-assembly:zip:8.0-ABZU-TEST-24 is missing ...
+      ** And end up with 8.1-SNAPSHOT.
+      ** Maybe gradle would do better, but for now hard version:      
+    -->
+    <ael.version>8.0-SNAPSHOT</ael.version>
+
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.pentaho.adaptive</groupId>
+      <artifactId>pdi-websocket-daemon-assembly</artifactId>
+      <version>${ael.version}</version>
+      <type>zip</type>
+        <exclusions>
+          <exclusion>
+            <artifactId>*</artifactId>
+            <groupId>*</groupId>
+          </exclusion>
+        </exclusions>    
+    </dependency> 
+  </dependencies>   
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.0.2</version>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/ael-daemon</outputDirectory>
+              <overWriteReleases>true</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+
+  <!-- To test through Pentaho public Nexus from inside Pentaho network,
+       just put this in your settings.xml : 
+  <mirrors>
+    <mirror>
+      <id>pentaho.resolve.repo</id>
+      <url>http://public.nexus.pentaho.org/content/groups/omni</url>
+      <mirrorOf>*</mirrorOf>
+    </mirror>
+  </mirrors>
+  -->  
+  
+  <repositories>
+    <repository>
+      <id>pentaho-public</id>
+      <name>Pentaho Public</name>
+      <url>http://nexus.pentaho.org/content/groups/omni</url>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>daily</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>interval:30</updatePolicy>
+      </snapshots>
+    </repository>
+  </repositories>    
+</project>
