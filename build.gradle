@@ -1,0 +1,56 @@
+defaultTasks 'clean', 'build'
+
+repositories {
+    maven {
+        url "http://nexus.pentaho.org/content/groups/omni"
+    }
+}
+
+/* Looks like gradle uses the ivy version range spec
+ * Which DOES work allot better than the maven one.
+ * http://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html
+ * '8.1-SNAPSHOT gets lates 8.1 snapshot
+ * '8.0.0.0 gets latest 8.0.0.0
+ *  '8.1+ gets latest 8.1.x.x release, etc
+ */
+ 
+def pentahoVersion = '8.0.0.0+'
+
+configurations {
+    clients {
+        description = 'Get latest snapshot'
+        transitive = false
+    }
+}
+
+dependencies {
+    clients ( 
+      "org.pentaho.di:pdi-ce:${pentahoVersion}@zip",
+      "pentaho:psw-ce:${pentahoVersion}@zip", 
+      "pentaho:paz-plugin-ce:${pentahoVersion}@zip", 
+      "pentaho:pad-ce:${pentahoVersion}@zip", 
+      "org.pentaho.reporting:prd-ce:${pentahoVersion}@zip"      
+    )
+
+}
+
+
+task clean {
+    doLast {
+       delete "${buildDir}"
+    }
+}
+
+
+task copyDependencies(type: Copy) {
+
+     from configurations.clients
+     into "${buildDir}"
+}
+
+task build(type: GradleBuild) {
+     println "Using version ${pentahoVersion}"
+    tasks = ['copyDependencies']
+
+}
+
