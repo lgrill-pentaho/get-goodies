@@ -14,7 +14,8 @@ repositories {
  *  '8.1+ gets latest 8.1.x.x release, etc
  */
  
-def pentahoVersion = '8.0.0.0+'
+
+def pentahoVersion = System.getProperty("version") == null ? version : System.getProperty("version")
 
 configurations {
     clients {
@@ -23,33 +24,46 @@ configurations {
     }
 }
 
+
+
 dependencies {
+
     clients ( 
-      "org.pentaho.di:pdi-ce:${pentahoVersion}@zip",
+      "org.pentaho.di:pdi-ce:${pentahoVersion}@zip", 
       "pentaho:psw-ce:${pentahoVersion}@zip", 
       "pentaho:paz-plugin-ce:${pentahoVersion}@zip", 
       "pentaho:pad-ce:${pentahoVersion}@zip", 
       "org.pentaho.reporting:prd-ce:${pentahoVersion}@zip"      
     )
-
 }
 
 
 task clean {
     doLast {
-       delete "${buildDir}"
+       delete buildDir
     }
 }
 
-
-task copyDependencies(type: Copy) {
-
-     from configurations.clients
-     into "${buildDir}"
+task initOutputDir {
+    doLast {
+       mkdir buildDir
+    }
 }
 
+task copyDependencies(type: Sync, dependsOn: 'initOutputDir' ) {      
+     // Using task type Sync instead of Copy so the build directory
+     // auto-cleans old versions without need to call the clean task directory
+     from configurations.clients
+     into buildDir
+}
+
+
 task build(type: GradleBuild) {
-     println "Using version ${pentahoVersion}"
+
+     doFirst {      
+        println "Copying dependencies for version ${pentahoVersion}" 
+      }
+     
     tasks = ['copyDependencies']
 
 }
